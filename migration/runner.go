@@ -3,6 +3,10 @@ package migration
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -86,6 +90,49 @@ func runStatus(ctx context.Context, db *pgxpool.Pool, migrations []Migration) er
 	return nil
 }
 
+func normalizeMigrationName(name string) string {
+	name = strings.TrimSpace(name)
+	name = strings.ToLower(name)
+	name = strings.ReplaceAll(name, " ", "_")
+	name = strings.ReplaceAll(name, "-", "_")
+	return name
+}
+
+func runCreateFile(path string, tableNames []string) error {
+	for _, tableName := range tableNames {
+		if strings.TrimSpace(tableName) == "" {
+			return fmt.Errorf("nome da tabela é obrigatório")
+		}
+		// 20260707120000_create_tableName.up.sql
+		// 20260707120000_create_tableName.down.sql
+
+		version := time.Now().Format("20060102150405")
+		tableName = normalizeMigrationName(tableName)
+
+		upFileName := fmt.Sprintf("%s_create_%s.up.sql", version, tableName)
+		downFileName := fmt.Sprintf("%s_create_%s.down.sql", version, tableName)
+
+		upFilePath := filepath.Join(path, upFileName)
+		downFilePath := filepath.Join(path, downFileName)
+
+		upFile, err := os.Create(upFilePath)
+		if err != nil {
+			return err
+		}
+
+		defer upFile.Close()
+
+		downFile, err := os.Create(downFilePath)
+		if err != nil {
+			return err
+		}
+
+		defer downFile.Close()
+	}
+
+	return nil
+}
+
 func Run(ctx context.Context, db *pgxpool.Pool, option Options) error {
 	path, err := resolveMigrationDir(option.Dir)
 
@@ -112,9 +159,9 @@ func Run(ctx context.Context, db *pgxpool.Pool, option Options) error {
 		return runFresh(ctx, db, migrations)
 	case CommandStatus:
 		return runStatus(ctx, db, migrations)
+	case CommandCreate:
+		return runCreateFile(path, option.ExtraArgs)
 	default:
 		return fmt.Errorf("comando de migration inválido: %s", option.Command)
 	}
-
-	return nil
 }

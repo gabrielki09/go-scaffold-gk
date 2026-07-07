@@ -3,7 +3,6 @@ package migration
 import "strings"
 
 func parseMigrationFileName(fileName string) (version, name, direction string, ok bool) {
-
 	if !strings.HasSuffix(fileName, ".sql") {
 		return "", "", "", false
 	}

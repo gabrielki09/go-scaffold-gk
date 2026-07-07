@@ -7,11 +7,13 @@ const (
 	CommandDown   Command = "down"
 	CommandFresh  Command = "fresh"
 	CommandStatus Command = "status"
+	CommandCreate Command = "create"
 )
 
 type Options struct {
-	Dir     string
-	Command Command
+	Dir       string
+	Command   Command
+	ExtraArgs []string
 }
 
 type Migration struct {
