@@ -95,6 +95,10 @@ func Run(ctx context.Context, db *pgxpool.Pool, option Options) error {
 
 	migrations, err := collectMigrations(path)
 
+	if err != nil {
+		return err
+	}
+
 	if err := runSchemaMigrations(ctx, db); err != nil {
 		return err
 	}
@@ -108,6 +112,8 @@ func Run(ctx context.Context, db *pgxpool.Pool, option Options) error {
 		return runFresh(ctx, db, migrations)
 	case CommandStatus:
 		return runStatus(ctx, db, migrations)
+	default:
+		return fmt.Errorf("comando de migration inválido: %s", option.Command)
 	}
 
 	return nil

@@ -92,7 +92,7 @@ func applyMigration(ctx context.Context, db *pgxpool.Pool, migration Migration) 
 }
 
 func rollbackMigration(ctx context.Context, db *pgxpool.Pool, migration Migration) error {
-	sqlContent, err := os.ReadFile(migration.UpFile)
+	sqlContent, err := os.ReadFile(migration.DownFile)
 	if err != nil {
 		return err
 	}
