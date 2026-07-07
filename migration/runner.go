@@ -98,36 +98,58 @@ func normalizeMigrationName(name string) string {
 	return name
 }
 
+func createFileWithContent(migrationName, path, content string) error {
+	filePath := filepath.Join(path, migrationName)
+
+	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0644)
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+
+	if _, err := file.WriteString(content); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func runCreateFile(path string, tableNames []string) error {
+	version := time.Now().Format("20060102150405")
+
+	if err := os.MkdirAll(path, os.ModePerm); err != nil {
+		return fmt.Errorf("erro ao criar diretório de migrations: %w", err)
+	}
+
 	for _, tableName := range tableNames {
 		if strings.TrimSpace(tableName) == "" {
 			return fmt.Errorf("nome da tabela é obrigatório")
 		}
+
 		// 20260707120000_create_tableName.up.sql
 		// 20260707120000_create_tableName.down.sql
-
-		version := time.Now().Format("20060102150405")
 		tableName = normalizeMigrationName(tableName)
 
 		upFileName := fmt.Sprintf("%s_create_%s.up.sql", version, tableName)
 		downFileName := fmt.Sprintf("%s_create_%s.down.sql", version, tableName)
 
-		upFilePath := filepath.Join(path, upFileName)
-		downFilePath := filepath.Join(path, downFileName)
+		upContent := fmt.Sprintf(`CREAT TABLE IF NOT EXISTS %s (
+			created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+			updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+			deleted_at TIMESTAMPTZ NULL
+		);`, tableName)
 
-		upFile, err := os.Create(upFilePath)
-		if err != nil {
+		downContent := fmt.Sprintf(`DROP TABLE IF EXISTS %s;`, tableName)
+
+		if err := createFileWithContent(upFileName, path, upContent); err != nil {
 			return err
 		}
 
-		defer upFile.Close()
-
-		downFile, err := os.Create(downFilePath)
-		if err != nil {
+		if err := createFileWithContent(downFileName, path, downContent); err != nil {
 			return err
 		}
 
-		defer downFile.Close()
 	}
 
 	return nil
