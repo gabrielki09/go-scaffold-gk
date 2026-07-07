@@ -18,7 +18,7 @@ func parseMigrationFileName(fileName string) (version, name, direction string, o
 	baseName := parts[0]
 	direction = parts[1]
 
-	if direction != "up" && direction != "" {
+	if direction != "up" && direction != "down" {
 		return "", "", "", false
 	}
 
