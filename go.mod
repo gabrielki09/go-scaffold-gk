@@ -1,4 +1,4 @@
-module github.com/GabrielK09/go-migrate-gk
+module github.com/gabrielki09/go-migrate-gk
 
 go 1.26.1
 

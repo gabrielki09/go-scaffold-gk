@@ -127,17 +127,18 @@ func runCreateFile(path string, tableNames []string) error {
 			return fmt.Errorf("nome da tabela é obrigatório")
 		}
 
-		// 20260707120000_create_tableName.up.sql
-		// 20260707120000_create_tableName.down.sql
+		// 20060102150405_create_tableName.up.sql
+		// 20060102150405_create_tableName.down.sql
+
 		tableName = normalizeMigrationName(tableName)
 
 		upFileName := fmt.Sprintf("%s_create_%s.up.sql", version, tableName)
 		downFileName := fmt.Sprintf("%s_create_%s.down.sql", version, tableName)
 
 		upContent := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (
-created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-deleted_at TIMESTAMPTZ NULL
+			created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+			updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+			deleted_at TIMESTAMPTZ NULL
 		);`, tableName)
 
 		downContent := fmt.Sprintf(`DROP TABLE IF EXISTS %s;`, tableName)
