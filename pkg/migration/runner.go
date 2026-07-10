@@ -115,14 +115,16 @@ func createFileWithContent(migrationName, path, content string) error {
 	return nil
 }
 
-func runCreateFile(path string, tableNames []string) error {
+func runCreateFile(path string, tableNames any) error {
 	version := time.Now().Format("20060102150405")
 
 	if err := os.MkdirAll(path, os.ModePerm); err != nil {
 		return fmt.Errorf("erro ao criar diretório de migrations: %w", err)
 	}
 
-	for _, tableName := range tableNames {
+	switch tableNames.(type) {
+	case string:
+		tableName := tableNames.(string)
 		if strings.TrimSpace(tableName) == "" {
 			return fmt.Errorf("nome da tabela é obrigatório")
 		}
@@ -136,10 +138,10 @@ func runCreateFile(path string, tableNames []string) error {
 		downFileName := fmt.Sprintf("%s_create_%s.down.sql", version, tableName)
 
 		upContent := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (
-			created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-			updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-			deleted_at TIMESTAMPTZ NULL
-		);`, tableName)
+				created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+				updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+				deleted_at TIMESTAMPTZ NULL
+			);`, tableName)
 
 		downContent := fmt.Sprintf(`DROP TABLE IF EXISTS %s;`, tableName)
 
@@ -150,7 +152,36 @@ func runCreateFile(path string, tableNames []string) error {
 		if err := createFileWithContent(downFileName, path, downContent); err != nil {
 			return err
 		}
+	case []string:
+		for _, tableName := range tableNames.([]string) {
+			if strings.TrimSpace(tableName) == "" {
+				return fmt.Errorf("nome da tabela é obrigatório")
+			}
 
+			// 20060102150405_create_tableName.up.sql
+			// 20060102150405_create_tableName.down.sql
+
+			tableName = normalizeMigrationName(tableName)
+
+			upFileName := fmt.Sprintf("%s_create_%s.up.sql", version, tableName)
+			downFileName := fmt.Sprintf("%s_create_%s.down.sql", version, tableName)
+
+			upContent := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (
+				created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+				updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+				deleted_at TIMESTAMPTZ NULL
+			);`, tableName)
+
+			downContent := fmt.Sprintf(`DROP TABLE IF EXISTS %s;`, tableName)
+
+			if err := createFileWithContent(upFileName, path, upContent); err != nil {
+				return err
+			}
+
+			if err := createFileWithContent(downFileName, path, downContent); err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil
