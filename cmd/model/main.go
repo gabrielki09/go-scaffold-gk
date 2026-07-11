@@ -10,8 +10,8 @@ import (
 func main() {
 	var (
 		modelFlag        = flag.String("model", "", "Comando para criação de arquivo padrão da model")
-		separateByFolder = flag.Bool("s", false, "Comando para separação de pastas por model")
-		makeAll          = flag.Bool("a", false, "Comando para separação de pastas por model")
+		separateByFolder = flag.Bool("separate", false, "Comando para separação de pastas por model")
+		//makeAll          = flag.Bool("a", false, "Comando para separação de pastas por model")
 	)
 
 	flag.Parse()

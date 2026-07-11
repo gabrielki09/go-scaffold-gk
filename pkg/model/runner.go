@@ -8,28 +8,67 @@ import (
 	"strings"
 )
 
-func runCreateModelFile(model, path string, separateByFolder bool) error {
-	var filePath string
+func buildModelFullPath(model, path string, separateByFolder bool) (string, error) {
+	fileName := func(s string) string {
+		return fmt.Sprintf("%s_model.go", normalizeModelFileName(s))
+	}
 
-	normalizedModelFileName := normalizeModelFileName(model)
 	if !separateByFolder {
-		filePath = filepath.Join(path, fmt.Sprintf("%s_model.go", normalizedModelFileName))
+		return filepath.Join(path, fileName(model)), nil
+	}
 
-	} else {
+	fullPath := filepath.Join(path, strings.ToLower(model))
 
-		fullPath := filepath.Join(path, normalizedModelFileName)
-		exists, err := existsPath(fullPath)
-		if err != nil {
-			return err
+	exists, err := existsPath(fullPath)
+	if err != nil {
+		return "", err
+	}
+
+	if !exists {
+		if err := os.MkdirAll(fullPath, 0755); err != nil {
+			return "", err
 		}
 
-		if !exists {
-			if err := os.MkdirAll(fullPath, 0755); err != nil {
-				return err
+		fullPath = filepath.Join(path, strings.ToLower(model), fileName(model))
+	}
+
+	return fullPath, nil
+}
+
+func buildModelContent(model string) string {
+	capitalize := func(s string) string {
+		var newStr string
+		isFirstChar := true
+
+		for _, c := range strings.Split(s, "") {
+			if isFirstChar {
+				newStr += strings.ToUpper(c)
+				isFirstChar = !isFirstChar
+			} else {
+				newStr += c
+
 			}
+
 		}
 
-		filePath = fmt.Sprintf("%s/%s_model.go", fullPath, normalizedModelFileName)
+		return newStr
+	}
+
+	content := fmt.Sprintf(`package %smodel
+
+type %sModel struct {
+}
+	`, model, capitalize(model))
+
+	return content
+}
+
+func createModelFile(model, path string, separateByFolder bool) error {
+	filePath, err := buildModelFullPath(model, path, separateByFolder)
+
+	if err != nil {
+		return err
+
 	}
 
 	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0644)
@@ -39,7 +78,7 @@ func runCreateModelFile(model, path string, separateByFolder bool) error {
 
 	defer file.Close()
 
-	if _, err := file.WriteString(fmt.Sprintf(`package %smodel`, normalizeModelNameContent(model))); err != nil {
+	if _, err := file.WriteString(buildModelContent(normalizeModelNameContent(model))); err != nil {
 		return err
 	}
 
@@ -91,5 +130,5 @@ func Run(option Options) error {
 		return err
 	}
 
-	return runCreateModelFile(option.ModelName, dir, option.SeparateByFolder)
+	return createModelFile(option.ModelName, dir, option.SeparateByFolder)
 }
