@@ -1,13 +1,12 @@
 package scaffold
 
-import (
-	"log"
-)
-
 func Run(option Options) error {
+	if err := option.Validate(); err != nil {
+		return err
+	}
+
 	dirs, err := resolveFileDir(option.Command)
 	if err != nil {
-		log.Println("erro aqui 1")
 		return err
 	}
 
