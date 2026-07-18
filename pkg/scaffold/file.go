@@ -215,8 +215,7 @@ func (c *%s) Active(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
-// TODO
-func buildServiceContent(file File, names RepoPatternNames) string {
+func buildServiceContent(names RepoPatternNames) string {
 	return fmt.Sprintf(`package %s
 	
 import (
@@ -338,7 +337,6 @@ func (f *%s) Active(ctx context.Context, financialAccountId int) error {
 	)
 }
 
-// TODO
 func createRepoPatternFiles(file File, option Options) error {
 	repoPatternNames := buildRepoPatternNames(file.Name)
 
@@ -358,7 +356,7 @@ func createRepoPatternFiles(file File, option Options) error {
 	}
 
 	serviceFileName := fmt.Sprintf("%s_service.go", normalizeWithUnderline(file.Name))
-	serviceFileContent := buildServiceContent(file, repoPatternNames)
+	serviceFileContent := buildServiceContent(repoPatternNames)
 	serviceFilePath := filepath.Join(file.FilePaths["service"])
 	if err := createFileWithContent(serviceFileName, serviceFileContent, serviceFilePath); err != nil {
 		return err
