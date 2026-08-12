@@ -16,13 +16,13 @@ var (
 )
 
 const (
+	CommandMigration      = "M"
 	CommandModel          = "m"
 	CommandUUIDUse        = "uuid_use"
 	CommandIDUse          = "id_use"
 	CommandRequests       = "requests"
 	CommandResource       = "resource"
 	CommandSeed           = "seed"
-	CommandMigration      = "M"
 	CommandRepository     = "repo"
 	CommandController     = "controller"
 	CommandCreateRepoPath = "create_repo_path"

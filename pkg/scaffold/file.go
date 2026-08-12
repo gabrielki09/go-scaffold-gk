@@ -2,6 +2,7 @@ package scaffold
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -450,6 +451,8 @@ func buildMigrationContent(fileName, usageId string) (
 }
 
 func createMigrationFile(file File, option Options) error {
+	log.Println("Called createMigrationFile")
+
 	var migrationId string
 
 	if option.Command["uuid_use"] {
@@ -463,11 +466,11 @@ func createMigrationFile(file File, option Options) error {
 		return err
 	}
 
-	if err := createFileWithContent(migrationUpFileName, migrationUpContent, file.FilePaths["migration"]); err != nil {
+	if err := createFileWithContent(migrationUpFileName, migrationUpContent, file.FilePaths["M"]); err != nil {
 		return fmt.Errorf("erro ao criar o arquivo .up da migration: %w", err)
 	}
 
-	if err := createFileWithContent(migrationDownFileName, migrationDownContent, file.FilePaths["migration"]); err != nil {
+	if err := createFileWithContent(migrationDownFileName, migrationDownContent, file.FilePaths["M"]); err != nil {
 		return fmt.Errorf("erro ao criar o arquivo .down da migration: %w", err)
 	}
 
@@ -631,7 +634,7 @@ func createFiles(file File, option Options) error {
 	}
 
 	fileCreators := map[string]func(File, Options) error{
-		"migration":  createMigrationFile,
+		"m":          createMigrationFile,
 		"requests":   createRequestFile,
 		"seed":       createSeedFile,
 		"resource":   createResourceFile,
@@ -643,6 +646,8 @@ func createFiles(file File, option Options) error {
 		if !enabled {
 			continue
 		}
+
+		log.Println(key)
 
 		creator, exists := fileCreators[key]
 		if !exists {
