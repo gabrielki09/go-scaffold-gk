@@ -2,7 +2,6 @@ package scaffold
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -451,8 +450,6 @@ func buildMigrationContent(fileName, usageId string) (
 }
 
 func createMigrationFile(file File, option Options) error {
-	log.Println("Called createMigrationFile")
-
 	var migrationId string
 
 	if option.Command["uuid_use"] {
@@ -646,8 +643,6 @@ func createFiles(file File, option Options) error {
 		if !enabled {
 			continue
 		}
-
-		log.Println(key)
 
 		creator, exists := fileCreators[key]
 		if !exists {
